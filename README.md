@@ -1,55 +1,29 @@
 # Memory Globe 🌍
 
-Red social minimalista de recuerdos geolocalizados. Dos usuarios comparten fotos y audios anclados en un globo terráqueo 3D interactivo, en tiempo real.
+Minimalist social media of geolocalized memories. Two users share pictures and audio (music) attach in a 3D interactive globe in real time.
 
 ## Stack
 
 - **Backend:** Python + Flask + Flask-SocketIO
 - **Frontend:** HTML/CSS/JS + Globe.gl
-- **Base de datos:** SQLite
-- **Tiempo real:** WebSockets
-
-## Estructura
-
-```
-memory-globe/
-├── backend/
-│   ├── app.py              # Servidor principal + WebSockets
-│   ├── database.py         # Inicialización y conexión SQLite
-│   ├── config.py           # Configuración general
-│   ├── requirements.txt    # Dependencias Python
-│   ├── routes/
-│   │   ├── auth.py         # Register / Login
-│   │   ├── pins.py         # CRUD de pins
-│   │   └── media.py        # Subida y servido de foto/audio
-│   └── uploads/
-│       ├── photos/         # Fotos subidas
-│       └── audios/         # Audios subidos (mp3, wav, grabados)
-└── frontend/
-    ├── index.html          # Página principal
-    ├── css/style.css       # Estilos
-    ├── js/
-    │   ├── app.js          # Lógica principal y estado
-    │   ├── globe.js        # Globo 3D con Globe.gl
-    │   ├── socket.js       # Conexión WebSocket tiempo real
-    │   └── audio.js        # Grabación y reproducción de audio
-    └── assets/             # Íconos y recursos estáticos
-```
+- **Database:** SQLite
+- **Real time:** WebSockets
 
 ## Instalación
 
 ```bash
-# 1. Clonar el repo
+# 1. Clone repo
 git clone https://github.com/tu-usuario/memory-globe.git
 cd memory-globe
 
-# 2. Crear entorno virtual e instalar dependencias
+# 2. Create virtual environment and install dependencies
 cd backend
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+# --activate venv--
+#python -m venv venv
+#source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# 3. Inicializar la base de datos y correr el servidor
+# 3. Initialize server
 python app.py
 ```
 
@@ -57,10 +31,5 @@ Abrir http://localhost:5000 en el navegador.
 
 ## Formatos de audio soportados
 
-Subida de archivo: mp3, wav, ogg, m4a
-Grabación desde el navegador: webm (se convierte automáticamente)
-
-## Equipo
-
-- Persona A — Backend (API, WebSockets, base de datos)
-- Persona B — Frontend (globo 3D, UI, audio)
+File upload: mp3, wav, ogg, m4a
+Recording from browser: webm 

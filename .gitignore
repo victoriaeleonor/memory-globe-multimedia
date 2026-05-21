@@ -5,7 +5,7 @@ __pycache__/
 venv/
 .env
 
-# Uploads (no subir archivos de usuarios al repo)
+# Uploads
 backend/uploads/photos/*
 backend/uploads/audios/*
 !backend/uploads/photos/.gitkeep
