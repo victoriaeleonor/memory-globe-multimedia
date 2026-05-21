@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.env
+
+# Uploads (no subir archivos de usuarios al repo)
+backend/uploads/photos/*
+backend/uploads/audios/*
+!backend/uploads/photos/.gitkeep
+!backend/uploads/audios/.gitkeep
+
+# Base de datos
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
