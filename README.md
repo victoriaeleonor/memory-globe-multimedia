@@ -1,4 +1,4 @@
-# Memory Globe 🌍
+# Memory Globe 🌍🖼️📌
 
 Minimalist social media of geolocalized memories. Two users share pictures and audio (music) attach in a 3D interactive globe in real time.
 
@@ -9,7 +9,7 @@ Minimalist social media of geolocalized memories. Two users share pictures and a
 - **Database:** SQLite
 - **Real time:** WebSockets
 
-## Instalación
+## Instalation
 
 ```bash
 # 1. Clone repo
@@ -27,9 +27,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Abrir http://localhost:5000 en el navegador.
+Open http://localhost:5000 in browser.
 
-## Formatos de audio soportados
+## Supported audio formats
 
 File upload: mp3, wav, ogg, m4a
 Recording from browser: webm 
