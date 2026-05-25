@@ -3,6 +3,7 @@
 let currentUser = null;  // { id, username }
 
 // ── Auth ──────────────────────────────────────────────
+//Login
 async function login(username, password) {
   const res = await fetch("/api/auth/login", {
     method: "POST",
@@ -15,6 +16,7 @@ async function login(username, password) {
   return currentUser;
 }
 
+//Register
 async function register(username, password) {
   const res = await fetch("/api/auth/register", {
     method: "POST",
@@ -67,3 +69,20 @@ function openNewPinForm(lat, lng) {
   // Mostrar formulario para crear pin en lat/lng
   console.log("Nuevo pin en:", lat, lng);
 }
+
+//Escucha el submit del formulario login
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault(); //avoids the page to reload
+
+  const username = document.getElementById("first").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    await login(username, password);
+    // si llegamos acá, el login fue exitoso
+    document.getElementById("login-screen").style.display = "none";
+    // acá después cargaremos los pins y mostraremos el globo
+  } catch (err) {
+    document.getElementById("auth-error").textContent = err.message;
+  }
+});

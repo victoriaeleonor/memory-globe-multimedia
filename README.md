@@ -32,4 +32,5 @@ Open http://localhost:5000 in browser.
 ## Supported audio formats
 
 File upload: mp3, wav, ogg, m4a
+
 Recording from browser: webm 

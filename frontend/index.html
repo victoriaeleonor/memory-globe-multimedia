@@ -9,6 +9,45 @@
 <body>
 
   <div id="app">
+    <!-- Login form -->
+    <div id="login-screen">
+      <form id="login-form">
+        <h2>Memory Globe</h2>
+        <h3>Enter your login credentials</h3>
+        <label for="first">Username: </label>
+        <input type="text" id="first" name="first" placeholder="Enter your Username" required>
+
+        <label for="password">Password: </label>
+        <input type="password" id="password" name="password" placeholder="Enter your Password" required>
+        <button type="submit">Submit</button>
+      </form>
+
+      <p>Not registered?
+        <a href="#" style="text-decoration: none;">
+          Create an account
+        </a>
+      </p>
+
+      <p id="auth-error" style="color:red;"></p>
+    </div>
+
+    <div id="register-screen" style="display: none;">
+      <form id="register-form">
+        <h3>Create an account</h3>
+        <label for="username">Username: </label>
+        <input type="text" id="user" name="user" required>
+
+        <label for="password">Password: </label>
+        <input type="password" id="password-reg" name="password" required>
+        <button type="submit">Register</button>
+      </form>
+
+      <p>Already have an account?
+        <a href="#" id="back-to-login">Login</a>
+        <p id="register-error" style="color:red;"></p>
+      </p>
+    </div>
+
     <!-- El globo ocupa toda la pantalla -->
     <div id="globe-container"></div>
 
@@ -69,6 +108,37 @@
     // TODO: implementar login/register UI
     // Una vez logueado, cargar pins:
     // fetchAllPins();
+
+    // "Create an account" → muestra el register
+    document.querySelector("#login-screen a").addEventListener("click", (e) => {
+      e.preventDefault();
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("register-screen").style.display = "block";
+    });
+
+    // "Login" → vuelve al login
+    document.getElementById("back-to-login").addEventListener("click", (e) => {
+      e.preventDefault();
+      document.getElementById("register-screen").style.display = "none";
+      document.getElementById("login-screen").style.display = "block";
+    });
+
+    // Submit del register
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("user").value;
+      const password = document.getElementById("password-reg").value;
+
+      try {
+        await register(username, password);
+        // registro exitoso → volver al login
+        document.getElementById("register-screen").style.display = "none";
+        document.getElementById("login-screen").style.display = "block";
+        document.getElementById("auth-error").textContent = "Account created! Please log in.";
+      } catch (err) {
+        document.getElementById("register-error").textContent = err.message;
+      }
+    });
   </script>
 </body>
 </html>
