@@ -9,43 +9,44 @@
 <body>
 
   <div id="app">
-    <!-- Login form -->
+    <!-- Login -->
     <div id="login-screen">
-      <form id="login-form">
-        <h2>Memory Globe</h2>
-        <h3>Enter your login credentials</h3>
-        <label for="first">Username: </label>
-        <input type="text" id="first" name="first" placeholder="Enter your Username" required>
+      <div class="auth-wrap">
+        <div class="stars"></div>
+        <div class="glow"></div>
+        <div class="card">
+          <div class="logo">Memory Globe</div>
+          <div class="tabs">
+            <div class="tab active" id="tab-login" onclick="showLogin()">Sign in</div>
+            <div class="tab" id="tab-register" onclick="showRegister()">Create account</div>
+          </div>
 
-        <label for="password">Password: </label>
-        <input type="password" id="password" name="password" placeholder="Enter your Password" required>
-        <button type="submit">Submit</button>
-      </form>
+          <!-- Login form -->
+          <div id="login-panel">
+            <h2>Welcome back</h2>
+            <p class="subtitle">Sign in to your globe</p>
+            <form id="login-form">
+              <div class="field"><label>Username</label><input type="text" id="first" placeholder="Enter your username" required /></div>
+              <div class="field"><label>Password</label><input type="password" id="password" placeholder="Enter your password" required /></div>
+              <button type="submit" class="btn">Sign in</button>
+            </form>
+            <p id="auth-error" class="error"></p>
+          </div>
 
-      <p>Not registered?
-        <a href="#" style="text-decoration: none;">
-          Create an account
-        </a>
-      </p>
+          <!-- Register form -->
+          <div id="register-panel" style="display:none;">
+            <h2>Join Memory Globe</h2>
+            <p class="subtitle">Create your account</p>
+            <form id="register-form">
+              <div class="field"><label>Username</label><input type="text" id="reg-user" placeholder="Enter your username" required /></div>
+              <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="Enter your password" required /></div>
+              <button type="submit" class="btn">Create account</button>
+            </form>
+            <p id="register-error" class="error"></p>
+          </div>
 
-      <p id="auth-error" style="color:red;"></p>
-    </div>
-
-    <div id="register-screen" style="display: none;">
-      <form id="register-form">
-        <h3>Create an account</h3>
-        <label for="username">Username: </label>
-        <input type="text" id="user" name="user" required>
-
-        <label for="password">Password: </label>
-        <input type="password" id="password-reg" name="password" required>
-        <button type="submit">Register</button>
-      </form>
-
-      <p>Already have an account?
-        <a href="#" id="back-to-login">Login</a>
-        <p id="register-error" style="color:red;"></p>
-      </p>
+        </div>
+      </div>
     </div>
 
     <!-- El globo ocupa toda la pantalla -->
@@ -105,35 +106,47 @@
     // Inicializar globo
     initGlobe("globe-container");
 
-    // TODO: implementar login/register UI
-    // Una vez logueado, cargar pins:
-    // fetchAllPins();
+    // ── Tabs ──
+    function showLogin() {
+      document.getElementById("login-panel").style.display = "block";
+      document.getElementById("register-panel").style.display = "none";
+      document.getElementById("tab-login").classList.add("active");
+      document.getElementById("tab-register").classList.remove("active");
+      document.getElementById("auth-error").textContent = "";
+      document.getElementById("register-error").textContent = "";
+    }
 
-    // "Create an account" → muestra el register
-    document.querySelector("#login-screen a").addEventListener("click", (e) => {
+    function showRegister() {
+      document.getElementById("login-panel").style.display = "none";
+      document.getElementById("register-panel").style.display = "block";
+      document.getElementById("tab-login").classList.remove("active");
+      document.getElementById("tab-register").classList.add("active");
+      document.getElementById("auth-error").textContent = "";
+      document.getElementById("register-error").textContent = "";
+    }
+
+    // ── Login ──
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      document.getElementById("login-screen").style.display = "none";
-      document.getElementById("register-screen").style.display = "block";
+      const username = document.getElementById("first").value;
+      const password = document.getElementById("password").value;
+      try {
+        await login(username, password);
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("globe-container").style.display = "block";
+      } catch (err) {
+        document.getElementById("auth-error").textContent = err.message;
+      }
     });
 
-    // "Login" → vuelve al login
-    document.getElementById("back-to-login").addEventListener("click", (e) => {
-      e.preventDefault();
-      document.getElementById("register-screen").style.display = "none";
-      document.getElementById("login-screen").style.display = "block";
-    });
-
-    // Submit del register
+    // ── Register ──
     document.getElementById("register-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const username = document.getElementById("user").value;
-      const password = document.getElementById("password-reg").value;
-
+      const username = document.getElementById("reg-user").value;
+      const password = document.getElementById("reg-password").value;
       try {
         await register(username, password);
-        // registro exitoso → volver al login
-        document.getElementById("register-screen").style.display = "none";
-        document.getElementById("login-screen").style.display = "block";
+        showLogin();
         document.getElementById("auth-error").textContent = "Account created! Please log in.";
       } catch (err) {
         document.getElementById("register-error").textContent = err.message;

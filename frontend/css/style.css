@@ -1,0 +1,176 @@
+/* ── AUTH ── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+.auth-wrap {
+  min-height: 100vh;
+  background: #060a14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.stars {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 55%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 90%, rgba(255,255,255,0.3) 0%, transparent 100%);
+}
+
+.glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(29,158,117,0.12) 0%, transparent 70%);
+  bottom: -80px;
+  right: -60px;
+}
+
+.card {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  width: 340px;
+  position: relative;
+  z-index: 1;
+}
+
+.logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: #1D9E75;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1D9E75;
+}
+
+.card h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: #f0ede8;
+  margin: 0 0 0.25rem;
+}
+
+.subtitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  margin: 0 0 2rem;
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.field label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.05);
+  border: 0.5px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: #f0ede8;
+  outline: none;
+}
+
+.field input::placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+.field input:focus {
+  border-color: rgba(29,158,117,0.6);
+  background: rgba(29,158,117,0.05);
+}
+
+.btn {
+  width: 100%;
+  padding: 11px;
+  background: #1D9E75;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.btn:hover {
+  background: #5DCAA5;
+}
+
+.error {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  color: #F0997B;
+  margin-top: 0.75rem;
+  min-height: 18px;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 2rem;
+  border-bottom: 0.5px solid rgba(255,255,255,0.1);
+}
+
+.tab {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  padding: 0.5rem 1rem 0.75rem;
+  cursor: pointer;
+  color: rgba(255,255,255,0.35);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -0.5px;
+}
+
+.tab.active {
+  color: #1D9E75;
+  border-bottom-color: #1D9E75;
+}
+
+#globe-container {
+    display: none;
+}
+
+#login-screen {
+    display: fixed;
+    inset: 0;
+    z-index: 100;
+}
