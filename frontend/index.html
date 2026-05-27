@@ -53,10 +53,23 @@
     <div id="globe-container"></div>
 
     <!-- Sidebar con lista de pins -->
-    <aside id="sidebar">
-      <h1>Memory Globe 🌍</h1>
-      <p id="user-info"></p>
-      <div id="pins-list"></div>
+    <aside id="sidebar" class="hidden">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Memory Globe</span>
+        <span id="online-badge" class="online-badge">● 1 online</span>
+      </div>
+
+      <div class="sidebar-users" id="sidebar-users">
+        <!-- se rellena con JS -->
+      </div>
+
+      <div class="sidebar-pins" id="pins-list">
+        <!-- se rellena con JS -->
+      </div>
+
+      <button class="sidebar-add-btn" onclick="handleAddPin()">
+        + Click on the globe to add
+      </button>
     </aside>
 
     <!-- Modal: ver recuerdo -->
@@ -76,11 +89,11 @@
     <div id="new-pin-modal" class="modal hidden">
       <div class="modal-content">
         <button class="close-btn" onclick="closeNewPinForm()">✕</button>
-        <h2>Nuevo recuerdo</h2>
-        <input type="text" id="pin-title" placeholder="Título" />
-        <textarea id="pin-desc" placeholder="Descripción..."></textarea>
-        <label>Foto: <input type="file" id="pin-photo" accept="image/*" /></label>
-        <label>Audio (subir archivo):
+        <h2>New Memory</h2>
+        <input type="text" id="pin-title" placeholder="Title" />
+        <textarea id="pin-desc" placeholder="Caption..."></textarea>
+        <label>Picture: <input type="file" id="pin-photo" accept="image/*" /></label>
+        <label>Audio (upload file):
           <input type="file" id="pin-audio-file" accept="audio/*" />
         </label>
         <div id="record-controls">
@@ -130,10 +143,15 @@
       e.preventDefault();
       const username = document.getElementById("first").value;
       const password = document.getElementById("password").value;
+
       try {
         await login(username, password);
         document.getElementById("login-screen").style.display = "none";
         document.getElementById("globe-container").style.display = "block";
+
+        // Cargar pins y mostrar sidebar
+        const pins = await fetchAllPins();
+        showSidebar(pins);
       } catch (err) {
         document.getElementById("auth-error").textContent = err.message;
       }
@@ -152,6 +170,45 @@
         document.getElementById("register-error").textContent = err.message;
       }
     });
+
+    // ── Sidebar ──
+    function getInitials(username) {
+      return username.slice(0, 2).toUpperCase();
+    }
+
+    function renderSidebar(pins) {
+      // Mostrar usuario actual
+      document.getElementById("sidebar-users").innerHTML = `
+        <div class="user-row">
+          <div class="avatar">${getInitials(currentUser.username)}</div>
+          <span class="user-name">Tú</span>
+          <div class="user-dot"></div>
+        </div>
+      `;
+
+      // Renderizar pins
+      const pinsList = document.getElementById("pins-list");
+      if (pins.length === 0) {
+        pinsList.innerHTML = `<p style="font-family:'Outfit',sans-serif; font-size:13px; color:rgba(255,255,255,0.25); text-align:center; margin-top:1rem;">No hay recuerdos aún</p>`;
+        return;
+      }
+
+      pinsList.innerHTML = pins.map(pin => `
+        <div class="pin-row" onclick="openPinModal(${JSON.stringify(pin).replace(/"/g, '&quot;')})">
+          <span class="pin-emoji">📍</span>
+          <div class="pin-info">
+            <div class="pin-title">${pin.title}</div>
+            <div class="pin-location">⊙ ${pin.latitude.toFixed(2)}° · ${pin.longitude.toFixed(2)}°</div>
+          </div>
+          <div class="pin-avatar">${getInitials(pin.username)}</div>
+        </div>
+      `).join("");
+    }
+
+    function showSidebar(pins) {
+      document.getElementById("sidebar").classList.remove("hidden");
+      renderSidebar(pins);
+    }
   </script>
 </body>
 </html>

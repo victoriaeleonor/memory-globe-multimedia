@@ -33,6 +33,7 @@ async function fetchAllPins() {
   const res = await fetch("/api/pins/");
   const pins = await res.json();
   loadAllPins(pins);  // globe.js
+  return pins;
 }
 
 async function createPin({ title, description, latitude, longitude, photoFile, audioFileOrBlob, audioFilename }) {
