@@ -162,6 +162,8 @@
         await login(username, password);
         document.getElementById("login-screen").style.display = "none";
         document.getElementById("globe-container").style.display = "block";
+        globe.width(window.innerWidth - 270);
+        globe.height(window.innerHeight);
 
         // Cargar pins y mostrar sidebar
         const pins = await fetchAllPins();

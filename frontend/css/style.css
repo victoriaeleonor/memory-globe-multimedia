@@ -166,7 +166,12 @@
 }
 
 #globe-container {
-    position: fixed;
+  position: fixed;
+  top: 0;
+  left: 270px;
+  width: calc(100% - 270px);
+  height: 100vh;
+  display: none;
 }
 
 #login-screen {

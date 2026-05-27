@@ -5,8 +5,8 @@ pins_bp = Blueprint("pins", __name__)
 
 def pin_to_dict(pin):
     p = dict(pin)
-    p["photo_url"] = f"/media/photos/{p['photo_filename']}" if p.get("photo_filename") else None
-    p["audio_url"] = f"/media/audios/{p['audio_filename']}" if p.get("audio_filename") else None
+    p["photo_url"] = f"/api/media/photos/{p['photo_filename']}" if p.get("photo_filename") else None
+    p["audio_url"] = f"/api/media/audios/{p['audio_filename']}" if p.get("audio_filename") else None
     return p
 
 @pins_bp.route("/", methods=["GET"])
