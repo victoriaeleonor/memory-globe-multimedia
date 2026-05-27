@@ -3,6 +3,12 @@ import database
 
 pins_bp = Blueprint("pins", __name__)
 
+def pin_to_dict(pin):
+    p = dict(pin)
+    p["photo_url"] = f"/media/photos/{p['photo_filename']}" if p.get("photo_filename") else None
+    p["audio_url"] = f"/media/audios/{p['audio_filename']}" if p.get("audio_filename") else None
+    return p
+
 @pins_bp.route("/", methods=["GET"])
 def get_pins():
     conn = database.get_db()
@@ -13,7 +19,7 @@ def get_pins():
     """).fetchall()
     conn.close()
 
-    return jsonify([dict(p) for p in pins]), 200
+    return jsonify([pin_to_dict(p) for p in pins]), 200
 
 @pins_bp.route("/", methods=["POST"])
 def create_pin():
@@ -40,7 +46,7 @@ def create_pin():
     """, (pin_id,)).fetchone()
     conn.close()
 
-    return jsonify(dict(pin)), 201
+    return jsonify(pin_to_dict(pin)), 201
 
 @pins_bp.route("/<int:pin_id>", methods=["DELETE"])
 def delete_pin(pin_id):

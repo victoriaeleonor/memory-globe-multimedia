@@ -32,7 +32,7 @@ def static_files(path):
 # WebSocket: nuevo pin en tiempo real
 @socketio.on("new_pin")
 def handle_new_pin(data):
-    socketio.emit("pin_added", data, broadcast=True)
+    socketio.emit("pin_added", data, to=None)
 
 if __name__ == "__main__":
     database.init_db()
