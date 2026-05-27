@@ -60,17 +60,6 @@ async function createPin({ title, description, latitude, longitude, photoFile, a
   return pin;
 }
 
-// ── Modales (implementar en index.html) ───────────────
-function openPinModal(pin) {
-  // Mostrar foto, descripción y reproducir audio del pin
-  console.log("Abrir modal para pin:", pin);
-}
-
-function openNewPinForm(lat, lng) {
-  // Mostrar formulario para crear pin en lat/lng
-  console.log("Nuevo pin en:", lat, lng);
-}
-
 //Escucha el submit del formulario login
 document.getElementById("login-form").addEventListener("submit", async (e) => {
   e.preventDefault(); //avoids the page to reload
