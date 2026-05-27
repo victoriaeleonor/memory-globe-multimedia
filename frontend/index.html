@@ -72,48 +72,75 @@
       </button>
     </aside>
 
-   <!-- Modal: ver recuerdo -->
-  <div id="pin-modal" class="modal-hidden">
-    <div class="modal-overlay" onclick="closePinModal()"></div>
-    <div class="modal-card">
-      <button class="modal-close" onclick="closePinModal()">✕</button>
-      <img id="modal-photo" src="" alt="Foto del recuerdo" style="width:100%; border-radius:10px; margin-bottom:1rem; display:none;" />
-      <div class="modal-header" style="margin-bottom:0.75rem;">
-        <span class="modal-title" id="modal-title"></span>
-      </div>
-      <p id="modal-desc" style="font-family:'Outfit',sans-serif; font-size:14px; color:rgba(255,255,255,0.6); line-height:1.6; margin:0 0 1rem;"></p>
-      <div id="modal-audio-controls">
-        <audio id="modal-audio" controls style="width:100%; accent-color:#1D9E75;"></audio>
+    <!-- Modal: ver recuerdo -->
+    <div id="pin-modal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closePinModal()">✕</button>
+        <img id="modal-photo" src="" alt="Foto del recuerdo" />
+        <h2 id="modal-title"></h2>
+        <p id="modal-coords"></p>
+        <p id="modal-desc"></p>
+        <div id="modal-audio-controls">
+          <div class="audio-player">
+            <button class="play-btn" onclick="toggleAudio()">▶</button>
+            <div class="audio-waveform">
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+            </div>
+            <span class="audio-time" id="audio-time">0:00</span>
+          </div>
+          <audio id="modal-audio"></audio>
+        </div>
       </div>
     </div>
-  </div>
 
     <!-- Modal: crear pin -->
-    <div id="new-pin-modal" style="display:none;">
-      <div class="modal-overlay" onclick="closeNewPinModal()"></div>
-      <div class="modal-card">
-        <div class="modal-header">
-          <span class="modal-title">New Memory</span>
-          <button class="modal-close" onclick="closeNewPinModal()">✕</button>
-        </div>
-        <div class="field">
+    <div id="new-pin-modal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closeNewPinModal()">✕</button>
+        <h2>New Memory</h2>
+        <p class="coords-tag" id="pin-coords"></p>
+
+        <div class="modal-field">
           <label>Title</label>
-          <input type="text" id="pin-title" placeholder="Where was this?" />
+          <input type="text" id="pin-title" placeholder="What happened here?" />
         </div>
-        <div class="field">
-          <label>Caption</label>
+
+        <div class="modal-field">
+          <label>Description</label>
           <textarea id="pin-description" placeholder="Tell the story..."></textarea>
         </div>
-        <div class="field">
-          <label>Picture</label>
-          <input type="file" id="pin-photo" accept="image/*" />
+
+        <div class="modal-field">
+          <label>Photo</label>
+          <div class="file-upload-area">
+            <input type="file" id="pin-photo" accept="image/*" onchange="previewPhoto(this)" />
+            <div class="upload-icon">🖼️</div>
+            <p class="upload-label">Drag or <span>choose a photo</span></p>
+            <p class="upload-hint">JPG, PNG, WEBP</p>
+          </div>
+          <img id="photo-preview" src="" alt="preview" />
         </div>
-        <div class="field">
+
+        <div class="modal-field">
           <label>Audio</label>
-          <input type="file" id="pin-audio" accept="audio/*" />
+          <div class="file-upload-area">
+            <input type="file" id="pin-audio" accept="audio/*" onchange="showAudioName(this)" />
+            <div class="upload-icon">🎵</div>
+            <p class="upload-label">Drag or <span>choose an audio file</span></p>
+            <p class="upload-hint">MP3, WAV, OGG</p>
+          </div>
+          <p class="file-chosen" id="audio-chosen"></p>
         </div>
+
         <p id="pin-error" class="error"></p>
-        <button class="btn" onclick="submitNewPin()">Save memory</button>
+        <button id="save-pin-btn" onclick="submitNewPin()">Save memory</button>
       </div>
     </div>
 
@@ -205,13 +232,13 @@
       // Renderizar pins
       const pinsList = document.getElementById("pins-list");
       if (pins.length === 0) {
-        pinsList.innerHTML = `<p style="font-family:'Outfit',sans-serif; font-size:13px; color:rgba(255,255,255,0.25); text-align:center; margin-top:1rem;">No memories yet</p>`;
+        pinsList.innerHTML = `<p style="font-size:13px; color:var(--text-muted); text-align:center; margin-top:1rem;">No memories yet</p>`;
         return;
       }
 
       pinsList.innerHTML = pins.map(pin => `
         <div class="pin-row" onclick="openPinModal(${JSON.stringify(pin).replace(/"/g, '&quot;')})">
-          <span class="pin-emoji">📍</span>
+          <div class="pin-icon">📍</div>
           <div class="pin-info">
             <div class="pin-title">${pin.title}</div>
             <div class="pin-location">⊙ ${pin.latitude.toFixed(2)}° · ${pin.longitude.toFixed(2)}°</div>
@@ -226,23 +253,39 @@
       renderSidebar(pins);
     }
 
-    // ── Modal nuevo pin ──
+   // ── Modal nuevo pin ──
     let pendingLat = null;
     let pendingLng = null;
 
+    function previewPhoto(input) {
+      const preview = document.getElementById("photo-preview");
+      if (input.files[0]) {
+        preview.src = URL.createObjectURL(input.files[0]);
+        preview.style.display = "block";
+      }
+    }
+
+    function showAudioName(input) {
+      document.getElementById("audio-chosen").textContent = input.files[0]?.name || "";
+    }
+
     function openNewPinForm(lat, lng) {
+      if (!currentUser) return;
       pendingLat = lat;
       pendingLng = lng;
+      document.getElementById("pin-coords").textContent = `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
       document.getElementById("pin-title").value = "";
       document.getElementById("pin-description").value = "";
       document.getElementById("pin-photo").value = "";
       document.getElementById("pin-audio").value = "";
+      document.getElementById("photo-preview").style.display = "none";
+      document.getElementById("audio-chosen").textContent = "";
       document.getElementById("pin-error").textContent = "";
-      document.getElementById("new-pin-modal").style.display = "flex";
+      document.getElementById("new-pin-modal").classList.remove("hidden");
     }
 
     function closeNewPinModal() {
-      document.getElementById("new-pin-modal").style.display = "none";
+      document.getElementById("new-pin-modal").classList.add("hidden");
     }
 
     async function submitNewPin() {
@@ -276,10 +319,7 @@
         });
 
         closeNewPinModal();
-
-        // Actualizar sidebar con el nuevo pin
-        const res = await fetch("/api/pins/");
-        const pins = await res.json();
+        const pins = await fetchAllPins();
         renderSidebar(pins);
 
       } catch (err) {
@@ -288,8 +328,19 @@
     }
 
     // ── Modal ver recuerdo ──
+    function toggleAudio() {
+      const audio = document.getElementById("modal-audio");
+      const btn = document.querySelector(".play-btn");
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = "⏸";
+      } else {
+        audio.pause();
+        btn.textContent = "▶";
+      }
+    }
+
     function openPinModal(pin) {
-      console.log(pin);
       const photo = document.getElementById("modal-photo");
       if (pin.photo_url) {
         photo.src = pin.photo_url;
@@ -300,6 +351,7 @@
 
       document.getElementById("modal-title").textContent = pin.title;
       document.getElementById("modal-desc").textContent = pin.description || "";
+      document.getElementById("modal-coords").textContent = `${pin.latitude.toFixed(4)}°, ${pin.longitude.toFixed(4)}°`;
 
       const audio = document.getElementById("modal-audio");
       if (pin.audio_url) {
@@ -309,11 +361,12 @@
         document.getElementById("modal-audio-controls").style.display = "none";
       }
 
-      document.getElementById("pin-modal").classList.remove("modal-hidden");
+      document.querySelector(".play-btn").textContent = "▶";
+      document.getElementById("pin-modal").classList.remove("hidden");
     }
 
     function closePinModal() {
-      document.getElementById("pin-modal").classList.add("modal-hidden");
+      document.getElementById("pin-modal").classList.add("hidden");
       document.getElementById("modal-audio").pause();
       document.getElementById("modal-audio").src = "";
     }
