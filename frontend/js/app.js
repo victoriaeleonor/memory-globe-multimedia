@@ -1,6 +1,6 @@
 // app.js — Lógica principal y estado de la aplicación
 
-let currentUser = null;  // { id, username }
+window.currentUser = null; // { id, username }
 
 // ── Auth ──────────────────────────────────────────────
 //Login
@@ -12,8 +12,8 @@ async function login(username, password) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error);
-  currentUser = { id: data.user_id, username: data.username };
-  return currentUser;
+  window.currentUser = { id: data.user_id, username: data.username };
+  return window.currentUser;
 }
 
 //Register
