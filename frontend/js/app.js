@@ -1,78 +1,406 @@
-// app.js — Lógica principal y estado de la aplicación
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memory Globe</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
 
-window.currentUser = null; // { id, username }
+  <div id="app">
+    <!-- Login -->
+    <div id="login-screen">
+      <div class="auth-wrap">
+        <div class="stars"></div>
+        <div class="glow"></div>
+        <div class="card">
+          <div class="logo">Memory Globe</div>
+          <div class="tabs">
+            <div class="tab active" id="tab-login" onclick="showLogin()">Sign in</div>
+            <div class="tab" id="tab-register" onclick="showRegister()">Create account</div>
+          </div>
 
-// ── Auth ──────────────────────────────────────────────
-//Login
-async function login(username, password) {
-  const res = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error);
-  window.currentUser = { id: data.user_id, username: data.username };
-  return window.currentUser;
-}
+          <!-- Login form -->
+          <div id="login-panel">
+            <h2>Welcome back</h2>
+            <p class="subtitle">Sign in to your globe</p>
+            <form id="login-form">
+              <div class="field"><label>Username</label><input type="text" id="first" placeholder="Enter your username" required /></div>
+              <div class="field"><label>Password</label><input type="password" id="password" placeholder="Enter your password" required /></div>
+              <button type="submit" class="btn">Sign in</button>
+            </form>
+            <p id="auth-error" class="error"></p>
+          </div>
 
-//Register
-async function register(username, password) {
-  const res = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error);
-  return data;
-}
+          <!-- Register form -->
+          <div id="register-panel" style="display:none;">
+            <h2>Join Memory Globe</h2>
+            <p class="subtitle">Create your account</p>
+            <form id="register-form">
+              <div class="field"><label>Username</label><input type="text" id="reg-user" placeholder="Enter your username" required /></div>
+              <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="Enter your password" required /></div>
+              <button type="submit" class="btn">Create account</button>
+            </form>
+            <p id="register-error" class="error"></p>
+          </div>
 
-// ── Pins ──────────────────────────────────────────────
-async function fetchAllPins() {
-  const res = await fetch("/api/pins/");
-  const pins = await res.json();
-  loadAllPins(pins);  // globe.js
-  return pins;
-}
+        </div>
+      </div>
+    </div>
 
-async function createPin({ title, description, latitude, longitude, photoFile, audioFileOrBlob, audioFilename }) {
-  const photo_filename = await uploadPhoto(photoFile);
-  const audio_filename = await uploadAudio(audioFileOrBlob, audioFilename);
+    <!-- El globo ocupa toda la pantalla -->
+    <div id="globe-container"></div>
 
-  const res = await fetch("/api/pins/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user_id: currentUser.id,
-      title,
-      description,
-      latitude,
-      longitude,
-      photo_filename,
-      audio_filename,
-    }),
-  });
+    <!-- Sidebar con lista de pins -->
+    <aside id="sidebar" class="hidden">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Memory Globe</span>
+        <div class="sidebar-header-right">
+          <span id="online-badge" class="online-badge">● 1 online</span>
+          <button class="logout-btn" onclick="logout()" title="Sign out">⏻</button>
+        </div>
+      </div>
 
-  const pin = await res.json();
-  addPinToGlobe(pin);   // globe.js — local
-  emitNewPin(pin);      // socket.js — tiempo real al otro usuario
-  return pin;
-}
+      <div class="sidebar-users" id="sidebar-users">
+        <!-- filled by JS -->
+      </div>
 
-//Escucha el submit del formulario login
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault(); //avoids the page to reload
+      <div class="sidebar-pins" id="pins-list">
+        <!-- se rellena con JS -->
+      </div>
 
-  const username = document.getElementById("first").value;
-  const password = document.getElementById("password").value;
+      <button class="sidebar-add-btn" onclick="handleAddPin()">
+        + Click on the globe to add
+      </button>
+    </aside>
 
-  try {
-    await login(username, password);
-    // si llegamos acá, el login fue exitoso
-    document.getElementById("login-screen").style.display = "none";
-    // acá después cargaremos los pins y mostraremos el globo
-  } catch (err) {
-    document.getElementById("auth-error").textContent = err.message;
-  }
-});
+    <!-- Modal: ver recuerdo -->
+    <div id="pin-modal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closePinModal()">✕</button>
+        <img id="modal-photo" src="" alt="Foto del recuerdo" />
+        <h2 id="modal-title"></h2>
+        <p id="modal-coords"></p>
+        <p id="modal-desc"></p>
+        <div id="modal-audio-controls">
+          <div class="audio-player">
+            <button class="play-btn" onclick="toggleAudio()">▶</button>
+            <div class="audio-waveform">
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+              <div class="wave-bar"></div>
+            </div>
+            <span class="audio-time" id="audio-time">0:00</span>
+          </div>
+          <audio id="modal-audio"></audio>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: crear pin -->
+    <div id="new-pin-modal" class="modal hidden">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closeNewPinModal()">✕</button>
+        <h2>New Memory</h2>
+        <p class="coords-tag" id="pin-coords"></p>
+
+        <div class="modal-field">
+          <label>Title</label>
+          <input type="text" id="pin-title" placeholder="What happened here?" />
+        </div>
+
+        <div class="modal-field">
+          <label>Description</label>
+          <textarea id="pin-description" placeholder="Tell the story..."></textarea>
+        </div>
+
+        <div class="modal-field">
+          <label>Photo</label>
+          <div class="file-upload-area">
+            <input type="file" id="pin-photo" accept="image/*" onchange="previewPhoto(this)" />
+            <div class="upload-icon">🖼️</div>
+            <p class="upload-label">Drag or <span>choose a photo</span></p>
+            <p class="upload-hint">JPG, PNG, WEBP</p>
+          </div>
+          <img id="photo-preview" src="" alt="preview" />
+        </div>
+
+        <div class="modal-field">
+          <label>Audio</label>
+          <div class="file-upload-area">
+            <input type="file" id="pin-audio" accept="audio/*" onchange="showAudioName(this)" />
+            <div class="upload-icon">🎵</div>
+            <p class="upload-label">Drag or <span>choose an audio file</span></p>
+            <p class="upload-hint">MP3, WAV, OGG</p>
+          </div>
+          <p class="file-chosen" id="audio-chosen"></p>
+        </div>
+
+        <p id="pin-error" class="error"></p>
+        <button id="save-pin-btn" onclick="submitNewPin()">Save memory</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Librerías -->
+  <script src="https://unpkg.com/globe.gl"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+  <!-- App -->
+  <script src="js/globe.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Inicializar globo
+    initGlobe("globe-container");
+
+    // ── Tabs ──
+    function showLogin() {
+      document.getElementById("login-panel").style.display = "block";
+      document.getElementById("register-panel").style.display = "none";
+      document.getElementById("tab-login").classList.add("active");
+      document.getElementById("tab-register").classList.remove("active");
+      document.getElementById("auth-error").textContent = "";
+      document.getElementById("register-error").textContent = "";
+    }
+
+    function showRegister() {
+      document.getElementById("login-panel").style.display = "none";
+      document.getElementById("register-panel").style.display = "block";
+      document.getElementById("tab-login").classList.remove("active");
+      document.getElementById("tab-register").classList.add("active");
+      document.getElementById("auth-error").textContent = "";
+      document.getElementById("register-error").textContent = "";
+    }
+
+    // ── Login ──
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("first").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await login(username, password);
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("globe-container").style.display = "block";
+        globe.width(window.innerWidth - 270);
+        globe.height(window.innerHeight);
+
+        // Tell server this user is online
+        announceOnline(currentUser);
+
+        // Load pins and show sidebar
+        const pins = await fetchAllPins();
+        showSidebar(pins);
+      } catch (err) {
+        document.getElementById("auth-error").textContent = err.message;
+      }
+    });
+
+    // ── Register ──
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("reg-user").value;
+      const password = document.getElementById("reg-password").value;
+      try {
+        await register(username, password);
+        showLogin();
+        document.getElementById("auth-error").textContent = "Account created! Please log in.";
+      } catch (err) {
+        document.getElementById("register-error").textContent = err.message;
+      }
+    });
+
+    // ── Sidebar ──
+    function getInitials(username) {
+      return username.slice(0, 2).toUpperCase();
+    }
+
+    // Renders the online users section in the sidebar
+    function renderOnlineUsers(users) {
+      const count = users.length;
+      document.getElementById("online-badge").textContent = `● ${count} online`;
+
+      document.getElementById("sidebar-users").innerHTML = users.map(u => {
+        const isYou = currentUser && u.id === currentUser.id;
+        return `
+          <div class="user-row">
+            <div class="avatar">${getInitials(u.username)}</div>
+            <span class="user-name">${isYou ? "You" : u.username}</span>
+            <div class="user-dot"></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderSidebar(pins) {
+      // Pins list
+      const pinsList = document.getElementById("pins-list");
+      if (pins.length === 0) {
+        pinsList.innerHTML = `<p style="font-size:13px; color:var(--text-muted); text-align:center; margin-top:1rem;">No memories yet</p>`;
+        return;
+      }
+
+      pinsList.innerHTML = pins.map(pin => `
+        <div class="pin-row" onclick="openPinModal(${JSON.stringify(pin).replace(/"/g, '&quot;')})">
+          <div class="pin-icon">📍</div>
+          <div class="pin-info">
+            <div class="pin-title">${pin.title}</div>
+            <div class="pin-location">⊙ ${pin.latitude.toFixed(2)}° · ${pin.longitude.toFixed(2)}°</div>
+          </div>
+          <div class="pin-avatar">${getInitials(pin.username)}</div>
+        </div>
+      `).join("");
+    }
+
+    function showSidebar(pins) {
+      document.getElementById("sidebar").classList.remove("hidden");
+      renderSidebar(pins);
+    }
+
+    function logout() {
+      window.currentUser = null;
+      // Tell server we're offline (socket disconnect handles it, but force a reload)
+      socket.disconnect();
+      // Hide globe UI
+      document.getElementById("sidebar").classList.add("hidden");
+      document.getElementById("globe-container").style.display = "none";
+      // Show login screen
+      document.getElementById("login-screen").style.display = "flex";
+      // Clear form fields
+      document.getElementById("first").value = "";
+      document.getElementById("password").value = "";
+      document.getElementById("auth-error").textContent = "";
+      // Reconnect socket for next login
+      socket.connect();
+    }
+
+   // ── Modal nuevo pin ──
+    let pendingLat = null;
+    let pendingLng = null;
+
+    function previewPhoto(input) {
+      const preview = document.getElementById("photo-preview");
+      if (input.files[0]) {
+        preview.src = URL.createObjectURL(input.files[0]);
+        preview.style.display = "block";
+      }
+    }
+
+    function showAudioName(input) {
+      document.getElementById("audio-chosen").textContent = input.files[0]?.name || "";
+    }
+
+    function openNewPinForm(lat, lng) {
+      if (!currentUser) return;
+      pendingLat = lat;
+      pendingLng = lng;
+      document.getElementById("pin-coords").textContent = `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
+      document.getElementById("pin-title").value = "";
+      document.getElementById("pin-description").value = "";
+      document.getElementById("pin-photo").value = "";
+      document.getElementById("pin-audio").value = "";
+      document.getElementById("photo-preview").style.display = "none";
+      document.getElementById("audio-chosen").textContent = "";
+      document.getElementById("pin-error").textContent = "";
+      document.getElementById("new-pin-modal").classList.remove("hidden");
+    }
+
+    function closeNewPinModal() {
+      document.getElementById("new-pin-modal").classList.add("hidden");
+    }
+
+    async function submitNewPin() {
+      const title = document.getElementById("pin-title").value.trim();
+      const description = document.getElementById("pin-description").value.trim();
+      const photoFile = document.getElementById("pin-photo").files[0];
+      const audioFile = document.getElementById("pin-audio").files[0];
+
+      if (!title) {
+        document.getElementById("pin-error").textContent = "The title is required.";
+        return;
+      }
+      if (!photoFile) {
+        document.getElementById("pin-error").textContent = "The picture is required.";
+        return;
+      }
+      if (!audioFile) {
+        document.getElementById("pin-error").textContent = "The audio is required.";
+        return;
+      }
+
+      try {
+        const pin = await createPin({
+          title,
+          description,
+          latitude: pendingLat,
+          longitude: pendingLng,
+          photoFile,
+          audioFileOrBlob: audioFile,
+          audioFilename: audioFile.name,
+        });
+
+        closeNewPinModal();
+        const pins = await fetchAllPins();
+        renderSidebar(pins);
+
+      } catch (err) {
+        document.getElementById("pin-error").textContent = err.message;
+      }
+    }
+
+    // ── Modal ver recuerdo ──
+    function toggleAudio() {
+      const audio = document.getElementById("modal-audio");
+      const btn = document.querySelector(".play-btn");
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = "⏸";
+      } else {
+        audio.pause();
+        btn.textContent = "▶";
+      }
+    }
+
+    function openPinModal(pin) {
+      const photo = document.getElementById("modal-photo");
+      if (pin.photo_url) {
+        photo.src = pin.photo_url;
+        photo.style.display = "block";
+      } else {
+        photo.style.display = "none";
+      }
+
+      document.getElementById("modal-title").textContent = pin.title;
+      document.getElementById("modal-desc").textContent = pin.description || "";
+      document.getElementById("modal-coords").textContent = `${pin.latitude.toFixed(4)}°, ${pin.longitude.toFixed(4)}°`;
+
+      const audio = document.getElementById("modal-audio");
+      if (pin.audio_url) {
+        audio.src = pin.audio_url;
+        document.getElementById("modal-audio-controls").style.display = "block";
+      } else {
+        document.getElementById("modal-audio-controls").style.display = "none";
+      }
+
+      document.querySelector(".play-btn").textContent = "▶";
+      document.getElementById("pin-modal").classList.remove("hidden");
+    }
+
+    function closePinModal() {
+      document.getElementById("pin-modal").classList.add("hidden");
+      document.getElementById("modal-audio").pause();
+      document.getElementById("modal-audio").src = "";
+    }
+  </script>
+</body>
+</html>
