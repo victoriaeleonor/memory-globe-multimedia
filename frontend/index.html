@@ -56,11 +56,14 @@
     <aside id="sidebar" class="hidden">
       <div class="sidebar-header">
         <span class="sidebar-title">Memory Globe</span>
-        <span id="online-badge" class="online-badge">● 1 online</span>
+        <div class="sidebar-header-right">
+          <span id="online-badge" class="online-badge">● 1 online</span>
+          <button class="logout-btn" onclick="logout()" title="Sign out">⏻</button>
+        </div>
       </div>
 
       <div class="sidebar-users" id="sidebar-users">
-        <!-- se rellena con JS -->
+        <!-- filled by JS -->
       </div>
 
       <div class="sidebar-pins" id="pins-list">
@@ -192,7 +195,10 @@
         globe.width(window.innerWidth - 270);
         globe.height(window.innerHeight);
 
-        // Cargar pins y mostrar sidebar
+        // Tell server this user is online
+        announceOnline(currentUser);
+
+        // Load pins and show sidebar
         const pins = await fetchAllPins();
         showSidebar(pins);
       } catch (err) {
@@ -219,17 +225,25 @@
       return username.slice(0, 2).toUpperCase();
     }
 
-    function renderSidebar(pins) {
-      // Mostrar usuario actual
-      document.getElementById("sidebar-users").innerHTML = `
-        <div class="user-row">
-          <div class="avatar">${getInitials(currentUser.username)}</div>
-          <span class="user-name">You</span>
-          <div class="user-dot"></div>
-        </div>
-      `;
+    // Renders the online users section in the sidebar
+    function renderOnlineUsers(users) {
+      const count = users.length;
+      document.getElementById("online-badge").textContent = `● ${count} online`;
 
-      // Renderizar pins
+      document.getElementById("sidebar-users").innerHTML = users.map(u => {
+        const isYou = currentUser && u.id === currentUser.id;
+        return `
+          <div class="user-row">
+            <div class="avatar">${getInitials(u.username)}</div>
+            <span class="user-name">${isYou ? "You" : u.username}</span>
+            <div class="user-dot"></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderSidebar(pins) {
+      // Pins list
       const pinsList = document.getElementById("pins-list");
       if (pins.length === 0) {
         pinsList.innerHTML = `<p style="font-size:13px; color:var(--text-muted); text-align:center; margin-top:1rem;">No memories yet</p>`;
@@ -251,6 +265,23 @@
     function showSidebar(pins) {
       document.getElementById("sidebar").classList.remove("hidden");
       renderSidebar(pins);
+    }
+
+    function logout() {
+      window.currentUser = null;
+      // Tell server we're offline (socket disconnect handles it, but force a reload)
+      socket.disconnect();
+      // Hide globe UI
+      document.getElementById("sidebar").classList.add("hidden");
+      document.getElementById("globe-container").style.display = "none";
+      // Show login screen
+      document.getElementById("login-screen").style.display = "flex";
+      // Clear form fields
+      document.getElementById("first").value = "";
+      document.getElementById("password").value = "";
+      document.getElementById("auth-error").textContent = "";
+      // Reconnect socket for next login
+      socket.connect();
     }
 
    // ── Modal nuevo pin ──
