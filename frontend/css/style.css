@@ -269,6 +269,33 @@ html, body {
   flex-shrink: 0;
 }
 
+.sidebar-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logout-btn {
+  background: none;
+  border: 0.5px solid var(--border);
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.logout-btn:hover {
+  color: #ff6b6b;
+  border-color: #ff6b6b44;
+}
+
 .sidebar-title {
   font-family: var(--font-head);
   font-size: 16px;
