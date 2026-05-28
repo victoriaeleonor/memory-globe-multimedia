@@ -133,13 +133,35 @@
 
         <div class="modal-field">
           <label>Audio</label>
-          <div class="file-upload-area">
-            <input type="file" id="pin-audio" accept="audio/*" onchange="showAudioName(this)" />
-            <div class="upload-icon">🎵</div>
-            <p class="upload-label">Drag or <span>choose an audio file</span></p>
-            <p class="upload-hint">MP3, WAV, OGG</p>
+
+          <!-- Tab switcher -->
+          <div class="audio-tabs">
+            <button class="audio-tab active" id="tab-upload" onclick="switchAudioTab('upload')">Upload file</button>
+            <button class="audio-tab" id="tab-record" onclick="switchAudioTab('record')">Record now</button>
           </div>
-          <p class="file-chosen" id="audio-chosen"></p>
+
+          <!-- Upload panel -->
+          <div id="audio-panel-upload">
+            <div class="file-upload-area">
+              <input type="file" id="pin-audio" accept="audio/*" onchange="showAudioName(this)" />
+              <div class="upload-icon">🎵</div>
+              <p class="upload-label">Drag or <span>choose an audio file</span></p>
+              <p class="upload-hint">MP3, WAV, OGG</p>
+            </div>
+            <p class="file-chosen" id="audio-chosen"></p>
+          </div>
+
+          <!-- Record panel -->
+          <div id="audio-panel-record" style="display:none;">
+            <div class="record-area">
+              <button class="record-btn" id="record-btn" onclick="toggleRecording()">
+                <span class="record-dot"></span> Start recording
+              </button>
+              <span class="record-timer" id="record-timer" style="display:none;">⏺ 0:00</span>
+            </div>
+            <audio id="audio-preview" controls style="display:none; width:100%; margin-top:0.6rem;"></audio>
+            <p class="file-chosen" id="audio-recorded-label"></p>
+          </div>
         </div>
 
         <p id="pin-error" class="error"></p>
@@ -312,6 +334,18 @@
       document.getElementById("photo-preview").style.display = "none";
       document.getElementById("audio-chosen").textContent = "";
       document.getElementById("pin-error").textContent = "";
+      // Reset recording state
+      recordedAudioBlob = null;
+      if (isRecording) { stopRecording(); }
+      document.getElementById("record-btn").textContent = "";
+      document.getElementById("record-btn").innerHTML = '<span class="record-dot"></span> Start recording';
+      document.getElementById("record-btn").classList.remove("recording");
+      document.getElementById("record-timer").style.display = "none";
+      document.getElementById("record-timer").textContent = "⏺ 0:00";
+      document.getElementById("audio-preview").style.display = "none";
+      document.getElementById("audio-preview").src = "";
+      document.getElementById("audio-recorded-label").textContent = "";
+      switchAudioTab("upload");
       document.getElementById("new-pin-modal").classList.remove("hidden");
     }
 
@@ -325,6 +359,10 @@
       const photoFile = document.getElementById("pin-photo").files[0];
       const audioFile = document.getElementById("pin-audio").files[0];
 
+      // Determine audio source: recorded blob takes priority over file upload
+      const audioSource = recordedAudioBlob || audioFile;
+      const audioFilename = recordedAudioBlob ? "recording.webm" : audioFile?.name;
+
       if (!title) {
         document.getElementById("pin-error").textContent = "The title is required.";
         return;
@@ -333,8 +371,8 @@
         document.getElementById("pin-error").textContent = "The picture is required.";
         return;
       }
-      if (!audioFile) {
-        document.getElementById("pin-error").textContent = "The audio is required.";
+      if (!audioSource) {
+        document.getElementById("pin-error").textContent = "Please upload or record an audio.";
         return;
       }
 
@@ -345,8 +383,8 @@
           latitude: pendingLat,
           longitude: pendingLng,
           photoFile,
-          audioFileOrBlob: audioFile,
-          audioFilename: audioFile.name,
+          audioFileOrBlob: audioSource,
+          audioFilename,
         });
 
         closeNewPinModal();
@@ -400,6 +438,62 @@
       document.getElementById("pin-modal").classList.add("hidden");
       document.getElementById("modal-audio").pause();
       document.getElementById("modal-audio").src = "";
+    }
+
+    // ── Audio tab switcher ──
+    function switchAudioTab(tab) {
+      document.getElementById("audio-panel-upload").style.display = tab === "upload" ? "block" : "none";
+      document.getElementById("audio-panel-record").style.display = tab === "record" ? "block" : "none";
+      document.getElementById("tab-upload").classList.toggle("active", tab === "upload");
+      document.getElementById("tab-record").classList.toggle("active", tab === "record");
+    }
+
+    // ── Recording logic ──
+    let recordedAudioBlob = null;
+    let recordTimerInterval = null;
+    let recordSeconds = 0;
+
+    async function toggleRecording() {
+      if (!isRecording) {
+        // Start
+        try {
+          await startRecording();
+          recordSeconds = 0;
+          const timerEl = document.getElementById("record-timer");
+          timerEl.style.display = "inline";
+          timerEl.textContent = "⏺ 0:00";
+          recordTimerInterval = setInterval(() => {
+            recordSeconds++;
+            const m = Math.floor(recordSeconds / 60);
+            const s = String(recordSeconds % 60).padStart(2, "0");
+            timerEl.textContent = `⏺ ${m}:${s}`;
+          }, 1000);
+          const btn = document.getElementById("record-btn");
+          btn.innerHTML = '<span class="record-dot recording-active"></span> Stop recording';
+          btn.classList.add("recording");
+          recordedAudioBlob = null;
+          document.getElementById("audio-preview").style.display = "none";
+          document.getElementById("audio-recorded-label").textContent = "";
+        } catch (err) {
+          document.getElementById("pin-error").textContent = "Microphone access denied.";
+        }
+      } else {
+        // Stop
+        clearInterval(recordTimerInterval);
+        const blob = await stopRecording();
+        recordedAudioBlob = blob;
+        const url = URL.createObjectURL(blob);
+        const preview = document.getElementById("audio-preview");
+        preview.src = url;
+        preview.style.display = "block";
+        const secs = recordSeconds;
+        const m = Math.floor(secs / 60), s = String(secs % 60).padStart(2, "0");
+        document.getElementById("audio-recorded-label").textContent = `Recorded: ${m}:${s}`;
+        document.getElementById("record-timer").style.display = "none";
+        const btn = document.getElementById("record-btn");
+        btn.innerHTML = '<span class="record-dot"></span> Record again';
+        btn.classList.remove("recording");
+      }
     }
   </script>
 </body>
