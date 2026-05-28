@@ -833,3 +833,82 @@ html, body {
   opacity: 1;
   transform: none;
 }
+
+/* ── Audio tab switcher ─────────────────────────────── */
+.audio-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.audio-tab {
+  flex: 1;
+  padding: 0.35rem 0;
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.audio-tab.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Record button ──────────────────────────────────── */
+.record-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+}
+
+.record-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.record-btn:hover { background: var(--accent-dim); }
+.record-btn.recording { border-color: #ff6b6b; color: #ff6b6b; }
+.record-btn.recording:hover { background: rgba(255,107,107,0.1); }
+
+.record-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.record-dot.recording-active {
+  background: #ff6b6b;
+  animation: pulse-rec 1s ease-in-out infinite;
+}
+
+@keyframes pulse-rec {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.8); }
+}
+
+.record-timer {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #ff6b6b;
+}
